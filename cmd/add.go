@@ -20,19 +20,8 @@ var addCmd = &cobra.Command{
 		overwrite, _ := cmd.Flags().GetBool("overwrite")
 		path, _ := xdg.DataFile("fmark/commands.json")
 
-		if exists, _ := afero.Exists(fs, path); !exists {
-			if err := afero.WriteFile(fs, path, []byte("[]"), 0644); err != nil {
-				return err
-			}
-		}
-
-		f, err := afero.ReadFile(fs, path)
+		jsonData, err := loadMarks()
 		if err != nil {
-			return err
-		}
-
-		var jsonData []MarkData
-		if err := json.Unmarshal(f, &jsonData); err != nil {
 			return err
 		}
 
@@ -40,13 +29,13 @@ var addCmd = &cobra.Command{
 		i := slices.IndexFunc(jsonData, func(m MarkData) bool {
 			return m.Name == newMark.Name
 		})
+
 		if i != -1 {
-			if overwrite {
-				jsonData[i] = newMark
-			} else {
-				fmt.Printf("bookmark %q is already exists\n", newMark.Name)
+			if !overwrite {
+				fmt.Printf("bookmark %q already exists\n", newMark.Name)
 				return nil
 			}
+			jsonData[i] = newMark
 		} else {
 			jsonData = append(jsonData, newMark)
 		}
