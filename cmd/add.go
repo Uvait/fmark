@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"slices"
 
 	"github.com/adrg/xdg"
@@ -17,22 +16,14 @@ type MarkData struct {
 }
 
 var addCmd = &cobra.Command{
-	Use:   "add <name>",
+	Use:   "add <name> <command>",
 	Short: "Add a bookmark",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		command, _ := cmd.Flags().GetString("command")
-		text, _ := cmd.Flags().GetString("text")
+		name := args[0]
+		command := args[1]
 		overwrite, _ := cmd.Flags().GetBool("overwrite")
-
-		var value, path string
-		if command != "" {
-			value = command
-			path, _ = xdg.DataFile("fmark/commands.json")
-		} else {
-			value = text
-			path, _ = xdg.DataFile("fmark/texts.json")
-		}
+		path, _ := xdg.DataFile("fmark/commands.json")
 
 		if exists, _ := afero.Exists(fs, path); !exists {
 			if err := afero.WriteFile(fs, path, []byte("[]"), 0644); err != nil {
@@ -50,17 +41,16 @@ var addCmd = &cobra.Command{
 			return err
 		}
 
-		newMark := MarkData{Name: args[0], Value: value}
+		newMark := MarkData{Name: name, Value: command}
 		i := slices.IndexFunc(jsonData, func(m MarkData) bool {
 			return m.Name == newMark.Name
 		})
-
 		if i != -1 {
 			if overwrite {
 				jsonData[i] = newMark
 			} else {
-				fmt.Fprintf(os.Stderr, "bookmark %q is already exists\n", newMark.Name)
-				os.Exit(1)
+				fmt.Printf("bookmark %q is already exists\n", newMark.Name)
+				return nil
 			}
 		} else {
 			jsonData = append(jsonData, newMark)
@@ -76,10 +66,6 @@ var addCmd = &cobra.Command{
 }
 
 func init() {
-	addCmd.Flags().StringP("command", "c", "", "save a command")
-	addCmd.Flags().StringP("text", "t", "", "save a text")
 	addCmd.Flags().BoolP("overwrite", "o", false, "save the bookmark, even if it already exists")
-	addCmd.MarkFlagsOneRequired("command", "text")
-	addCmd.MarkFlagsMutuallyExclusive("command", "text")
 	rootCmd.AddCommand(addCmd)
 }
