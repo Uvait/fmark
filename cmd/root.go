@@ -11,7 +11,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:          "fmark",
-	Short:        "Bookmark CLI",
+	Short:        "Simple bookmark CLI",
 	SilenceUsage: true,
 }
 var fs = afero.NewOsFs()
