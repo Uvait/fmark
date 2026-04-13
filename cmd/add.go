@@ -51,6 +51,5 @@ var addCmd = &cobra.Command{
 
 func init() {
 	addCmd.Flags().BoolP("overwrite", "o", false, "save the bookmark, even if it already exists")
-	addCmd.Flags().BoolP("list", "l", false, "print all bookmarks")
 	rootCmd.AddCommand(addCmd)
 }
