@@ -90,3 +90,7 @@ func getBookmarkValidArgs(cmd *cobra.Command, args []string, toComplete string) 
 	}
 	return []string{}, cobra.ShellCompDirectiveNoFileComp
 }
+
+func (m MarkData) String() string {
+	return fmt.Sprintf("%s - %q", m.Name, m.Value)
+}
