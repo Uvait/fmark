@@ -13,6 +13,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type MarkData struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 var rootCmd = &cobra.Command{
 	Use:          "fmark <name>",
 	Short:        "Exec a command",

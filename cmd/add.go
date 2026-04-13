@@ -10,11 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type MarkData struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 var addCmd = &cobra.Command{
 	Use:   "add <name> <command>",
 	Short: "Add a bookmark",
