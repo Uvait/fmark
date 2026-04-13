@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
+	"slices"
+	"strings"
 
 	"github.com/adrg/xdg"
 	"github.com/spf13/afero"
@@ -10,11 +14,55 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:          "fmark",
-	Short:        "Simple bookmark CLI",
+	Use:          "fmark <name>",
+	Short:        "Exec a command",
 	SilenceUsage: true,
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		path, _ := xdg.DataFile("fmark/commands.json")
+		if exists, err := afero.Exists(fs, path); err != nil {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		} else if exists {
+			var jsonData []MarkData
+			data, _ := afero.ReadFile(fs, path)
+			if err := json.Unmarshal(data, &jsonData); err != nil {
+				return []string{}, cobra.ShellCompDirectiveNoFileComp
+			}
+			var items []string
+			for _, mark := range jsonData {
+				items = append(items, mark.Name)
+			}
+			return items, cobra.ShellCompDirectiveNoFileComp
+		}
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	},
+	Args: cobra.ExactArgs(1),
+
+	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
+		if jsonData, err := loadMarks(); err != nil {
+			return err
+		} else {
+			i := slices.IndexFunc(jsonData, func(m MarkData) bool {
+				return name == m.Name
+			})
+			if i != -1 {
+				parts := strings.Fields(jsonData[i].Value)
+				command := exec.Command(parts[0], parts[1:]...)
+				command.Stdout = os.Stdout
+				command.Stderr = os.Stderr
+				command.Stdin = os.Stdin
+				return command.Run()
+			} else {
+				return fmt.Errorf("bookmark %q not found", name)
+			}
+		}
+	},
 }
 var fs = afero.NewOsFs()
+
+func init() {
+	rootCmd.PersistentFlags().Bool("verbose", false, "verbose log")
+}
 
 func Execute() {
 	if xdg.DataHome == "" {
@@ -24,4 +72,14 @@ func Execute() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func loadMarks() ([]MarkData, error) {
+	path, _ := xdg.DataFile("fmark/commands.json")
+	data, err := afero.ReadFile(fs, path)
+	if err != nil {
+		return nil, err
+	}
+	var marks []MarkData
+	return marks, json.Unmarshal(data, &marks)
 }
