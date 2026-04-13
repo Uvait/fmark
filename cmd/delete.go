@@ -10,10 +10,11 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:     "delete <name>...",
-	Aliases: []string{"del"},
-	Short:   "Delete a bookmark",
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "delete <name>...",
+	Aliases:           []string{"del"},
+	Short:             "Delete a bookmark",
+	ValidArgsFunction: getBookmarkValidArgs,
+	Args:              cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, _ := xdg.DataFile("fmark/commands.json")
 		if jsonData, err := loadMarks(); err != nil {

@@ -19,28 +19,11 @@ type MarkData struct {
 }
 
 var rootCmd = &cobra.Command{
-	Use:          "fmark <name>",
-	Short:        "Exec a command",
-	SilenceUsage: true,
-	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		path, _ := xdg.DataFile("fmark/commands.json")
-		if exists, err := afero.Exists(fs, path); err != nil {
-			return []string{}, cobra.ShellCompDirectiveNoFileComp
-		} else if exists {
-			var jsonData []MarkData
-			data, _ := afero.ReadFile(fs, path)
-			if err := json.Unmarshal(data, &jsonData); err != nil {
-				return []string{}, cobra.ShellCompDirectiveNoFileComp
-			}
-			var items []string
-			for _, mark := range jsonData {
-				items = append(items, mark.Name)
-			}
-			return items, cobra.ShellCompDirectiveNoFileComp
-		}
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	},
-	Args: cobra.ExactArgs(1),
+	Use:               "fmark <name>",
+	Short:             "Exec a command",
+	SilenceUsage:      true,
+	ValidArgsFunction: getBookmarkValidArgs,
+	Args:              cobra.ExactArgs(1),
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
@@ -87,4 +70,23 @@ func loadMarks() ([]MarkData, error) {
 	}
 	var marks []MarkData
 	return marks, json.Unmarshal(data, &marks)
+}
+
+func getBookmarkValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	path, _ := xdg.DataFile("fmark/commands.json")
+	if exists, err := afero.Exists(fs, path); err != nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	} else if exists {
+		var jsonData []MarkData
+		data, _ := afero.ReadFile(fs, path)
+		if err := json.Unmarshal(data, &jsonData); err != nil {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		}
+		var items []string
+		for _, mark := range jsonData {
+			items = append(items, mark.Name)
+		}
+		return items, cobra.ShellCompDirectiveNoFileComp
+	}
+	return []string{}, cobra.ShellCompDirectiveNoFileComp
 }
