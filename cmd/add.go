@@ -16,7 +16,7 @@ type MarkData struct {
 	Value string `json:"value"`
 }
 
-var addCmd = cobra.Command{
+var addCmd = &cobra.Command{
 	Use:   "add <name>",
 	Short: "Add a bookmark",
 	Args:  cobra.ExactArgs(1),
@@ -81,5 +81,5 @@ func init() {
 	addCmd.Flags().BoolP("overwrite", "o", false, "save the bookmark, even if it already exists")
 	addCmd.MarkFlagsOneRequired("command", "text")
 	addCmd.MarkFlagsMutuallyExclusive("command", "text")
-	rootCmd.AddCommand(&addCmd)
+	rootCmd.AddCommand(addCmd)
 }
