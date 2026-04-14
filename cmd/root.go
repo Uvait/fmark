@@ -57,7 +57,6 @@ func Execute() {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("Environment variable $XDG_DATA_HOME is empty"))
 		os.Exit(1)
 	} else if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
