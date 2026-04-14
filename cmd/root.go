@@ -54,7 +54,7 @@ func init() {
 
 func Execute() {
 	if xdg.DataHome == "" {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("Environment variable $XDG_DATA_HOME is empty"))
+		fmt.Fprintln(os.Stderr, "Environment variable $XDG_DATA_HOME is empty")
 		os.Exit(1)
 	} else if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
